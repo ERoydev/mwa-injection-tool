@@ -1,0 +1,61 @@
+version: "next-2.0"
+feature: injection-tool
+epics:
+  - id: 1
+    name: "Project Foundation & Injection Payload"
+    stories:
+      - id: "1-1"
+        slug: project-setup-guard
+        title: "Project Setup & Payload Constants/Guard"
+        size: S
+        status: done
+        wave: 1
+        dependencies: []
+      - id: "1-2"
+        slug: payload-config-build
+        title: "Payload Config, Registration & IIFE Build"
+        size: M
+        status: done
+        wave: 2
+        dependencies: ["1-1"]
+  - id: 2
+    name: "CLI & Automated Delivery"
+    stories:
+      - id: "2-1"
+        slug: error-catalog-logger
+        title: "Error Catalog & Logger"
+        size: S
+        status: done
+        wave: 2
+        dependencies: ["1-1"]
+      - id: "2-2"
+        slug: device-detection-cdp
+        title: "Device Detection & CDP Connection"
+        size: M
+        status: done
+        wave: 3
+        dependencies: ["2-1"]
+      - id: "2-3"
+        slug: cli-orchestration
+        title: "CLI Orchestration & Payload Delivery"
+        size: M
+        status: done
+        wave: 4
+        dependencies: ["1-2", "2-2"]
+  - id: 3
+    name: "Verification & Documentation"
+    stories:
+      - id: "3-1"
+        slug: test-dapp-page
+        title: "Test dApp HTML Page"
+        size: S
+        status: done
+        wave: 3
+        dependencies: ["1-2"]
+      - id: "3-2"
+        slug: readme-shell-wrapper
+        title: "README & Shell Wrapper"
+        size: S
+        status: done
+        wave: 5
+        dependencies: ["2-3"]

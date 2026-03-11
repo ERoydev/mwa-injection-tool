@@ -1,0 +1,42 @@
+{
+  "name": "mwa-injection-tool",
+  "version": "1.0.0",
+  "description": "MWA Standard Wallet Injection Tool for Solana dApps",
+  "type": "module",
+  "bin": {
+    "mwa-inject": "./dist/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src tests",
+    "format": "prettier --check src tests"
+  },
+  "keywords": [
+    "solana",
+    "mwa",
+    "wallet-standard",
+    "injection"
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^4.0.18",
+    "esbuild": "^0.27.3",
+    "eslint": "^10.0.3",
+    "jsdom": "^28.1.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@solana-mobile/wallet-standard-mobile": "^0.4.4",
+    "ws": "^8.19.0"
+  }
+}

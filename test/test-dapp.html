@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MWA Injection Test dApp</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      background: #0f0f0f;
+      color: #e0e0e0;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .subtitle { color: #888; font-size: 0.875rem; margin-bottom: 24px; }
+    .status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+    }
+    .status.secure { background: #0a2e1a; border: 1px solid #1a7a3a; }
+    .status.insecure { background: #2e1a0a; border: 1px solid #7a3a1a; }
+    .status.waiting { background: #1a1a2e; border: 1px solid #3a3a7a; }
+    .wallet-list {
+      list-style: none;
+      padding: 0;
+    }
+    .wallet-list li {
+      padding: 12px 16px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .wallet-list li::before {
+      content: "✓";
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .empty {
+      color: #666;
+      font-style: italic;
+      padding: 16px 0;
+    }
+    .log {
+      margin-top: 24px;
+      padding: 12px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-entry { padding: 2px 0; color: #aaa; }
+    .log-entry.warn { color: #f59e0b; }
+    .log-entry.error { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>MWA Injection Test</h1>
+  <p class="subtitle">Wallet Standard registration listener</p>
+
+  <div id="context-status" class="status waiting">Checking secure context...</div>
+
+  <h2 style="font-size: 1rem; margin-bottom: 12px;">Registered Wallets</h2>
+  <ul id="wallet-list" class="wallet-list"></ul>
+  <p id="empty-msg" class="empty">No wallets registered yet. Waiting for injection...</p>
+
+  <div id="log" class="log"></div>
+
+  <script>
+    (function () {
+      var walletList = document.getElementById("wallet-list");
+      var emptyMsg = document.getElementById("empty-msg");
+      var contextStatus = document.getElementById("context-status");
+      var logEl = document.getElementById("log");
+      var walletCount = 0;
+
+      function addLog(msg, level) {
+        var entry = document.createElement("div");
+        entry.className = "log-entry" + (level ? " " + level : "");
+        entry.textContent = "[" + new Date().toISOString().slice(11, 19) + "] " + msg;
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      // Check secure context
+      if (window.isSecureContext) {
+        contextStatus.className = "status secure";
+        contextStatus.textContent = "Secure context (HTTPS) — injection will proceed";
+        addLog("Secure context: true");
+      } else {
+        contextStatus.className = "status insecure";
+        contextStatus.textContent = "Not a secure context (HTTP) — guard will skip with \"not_secure_context\"";
+        addLog("Secure context: false — guard will skip injection", "warn");
+      }
+
+      // Listen for wallet-standard registration events
+      function handleRegister(event) {
+        var detail = event.detail;
+        if (!detail || typeof detail.register !== "function") {
+          addLog("Received register event with invalid detail", "warn");
+          return;
+        }
+
+        detail.register(function (wallet) {
+          walletCount++;
+          emptyMsg.style.display = "none";
+          var li = document.createElement("li");
+          li.textContent = wallet.name || "Unknown Wallet";
+          walletList.appendChild(li);
+          addLog("Wallet registered: " + (wallet.name || "Unknown"));
+        });
+      }
+
+      window.addEventListener("wallet-standard:register-wallet", handleRegister);
+      addLog("Listening for wallet-standard:register-wallet events");
+
+      // Also intercept console output from the injection payload
+      var origLog = console.log;
+      var origWarn = console.warn;
+      var origError = console.error;
+
+      console.log = function () {
+        origLog.apply(console, arguments);
+        var msg = Array.prototype.join.call(arguments, " ");
+        if (msg.indexOf("[MWA Inject]") !== -1) {
+          addLog(msg);
+        }
+      };
+
+      console.warn = function () {
+        origWarn.apply(console, arguments);
+        var msg = Array.prototype.join.call(arguments, " ");
+        if (msg.indexOf("[MWA Inject]") !== -1) {
+          addLog(msg, "warn");
+        }
+      };
+
+      console.error = function () {
+        origError.apply(console, arguments);
+        var msg = Array.prototype.join.call(arguments, " ");
+        if (msg.indexOf("[MWA Inject]") !== -1) {
+          addLog(msg, "error");
+        }
+      };
+
+      addLog("Test dApp ready");
+    })();
+  </script>
+</body>
+</html>
